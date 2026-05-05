@@ -1,4 +1,5 @@
 import livro from "../models/Livro.js";
+import { autor } from "../models/Autor.js";
 
 class LivroController {
 
@@ -9,7 +10,6 @@ class LivroController {
         } catch (error) {
             res.status(500).json({ message: "Erro ao listar livros!", error: error });
         }
-
     };
 
     static async buscarLivroPorId(req, res) {
@@ -27,8 +27,11 @@ class LivroController {
 
     static async cadastrarLivro(req, res) {
         try {
-            const novoLivro = await livro.create(req.body);
-            res.status(201).json({ message: "Livro adicionado com sucesso!", livro: novoLivro });
+            const novoLivro = req.body;
+            const autorEncontrado = await autor.findById(novoLivro.autor);
+            const livroCompleto = { ...novoLivro, autor: { ...autorEncontrado._doc } };
+            const livroCriado = await livro.create(livroCompleto);
+            res.status(201).json({ message: "Livro adicionado com sucesso!", livro: livroCriado });
         }
         catch (error) {
             res.status(500).json({ message: "Erro ao adicionar livro!", error: error });
@@ -55,7 +58,7 @@ class LivroController {
             if (!livroExcluido) {
                 return res.status(404).json({ message: "Livro não encontrado!" });
             }
-            res.status(200).json({ message: "Livro excluído com sucesso!", livro: livroExcluido });
+            res.status(200).json({ message: "Livro excluído com sucesso!" });
         } catch (error) {
             res.status(500).json({ message: "Erro ao excluir livro!", error: error });
         }
